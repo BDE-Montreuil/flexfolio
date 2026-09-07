@@ -53,6 +53,6 @@ export const PALETTE = {
  *  migration 0004 column defaults, not the live source of truth once a
  *  settings row exists. */
 export const TYPOGRAPHY = {
-  titleFont: "give-you-glory",
-  bodyFont: "quicksand",
+  titleFont: "Give You Glory",
+  bodyFont: "Quicksand",
 } as const;

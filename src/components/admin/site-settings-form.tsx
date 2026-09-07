@@ -14,21 +14,13 @@ import { Separator } from "@/components/ui/separator";
 import { GalleryLayoutToggle } from "@/components/admin/gallery-layout-toggle";
 import { SocialLinksList } from "@/components/admin/social-links-list";
 import { ColorField } from "@/components/admin/color-field";
-import { FontToggle } from "@/components/admin/font-toggle";
+import { FontNameField } from "@/components/admin/font-name-field";
 import { SITE, ABOUT_CONTENT, CONTACT, PALETTE, TYPOGRAPHY } from "@/lib/site-config";
 import { extractStoragePath, fileNameFromStoragePath } from "@/lib/storage-path";
 import {
-  TITLE_FONTS,
-  BODY_FONTS,
-  TITLE_FONT_LABELS,
-  BODY_FONT_LABELS,
-  TITLE_FONT_VARS,
-  BODY_FONT_VARS,
-  type BodyFont,
   type GalleryLayout,
   type SiteSettings,
   type SocialLink,
-  type TitleFont,
 } from "@/lib/types";
 
 const BUCKET = "project-images";
@@ -240,10 +232,8 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings | null }
   const [paletteCard, setPaletteCard] = useState(settings?.palette_card ?? PALETTE.card);
   const [paletteAccent, setPaletteAccent] = useState(settings?.palette_accent ?? PALETTE.accent);
 
-  const [fontTitle, setFontTitle] = useState<TitleFont>(
-    settings?.font_title ?? TYPOGRAPHY.titleFont,
-  );
-  const [fontBody, setFontBody] = useState<BodyFont>(settings?.font_body ?? TYPOGRAPHY.bodyFont);
+  const [fontTitle, setFontTitle] = useState(settings?.font_title ?? TYPOGRAPHY.titleFont);
+  const [fontBody, setFontBody] = useState(settings?.font_body ?? TYPOGRAPHY.bodyFont);
 
   const [saving, setSaving] = useState(false);
 
@@ -452,25 +442,21 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings | null }
             </p>
           </div>
           <div className="flex flex-col gap-2">
-            <Label>Titres</Label>
-            <FontToggle
-              ariaLabel="Police des titres"
-              options={TITLE_FONTS}
-              labels={TITLE_FONT_LABELS}
-              previewVars={TITLE_FONT_VARS}
+            <FontNameField
+              label="Titres"
               value={fontTitle}
               onChange={setFontTitle}
+              previewText={siteName || "Aa — Aperçu du titre"}
+              previewClassName="text-2xl"
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label>Corps de texte</Label>
-            <FontToggle
-              ariaLabel="Police du corps de texte"
-              options={BODY_FONTS}
-              labels={BODY_FONT_LABELS}
-              previewVars={BODY_FONT_VARS}
+            <FontNameField
+              label="Corps de texte"
               value={fontBody}
               onChange={setFontBody}
+              previewText="Le renard brun rapide saute par-dessus le chien paresseux."
+              previewClassName="text-base"
             />
           </div>
         </section>

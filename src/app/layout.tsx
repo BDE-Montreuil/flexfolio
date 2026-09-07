@@ -1,43 +1,14 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
-import { Playfair_Display, Inter, Give_You_Glory, Quicksand } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE, PALETTE, TYPOGRAPHY } from "@/lib/site-config";
 import { sanitizeHex } from "@/lib/palette";
+import { sanitizeFontFamily, googleFontsHref, fontFamilyCssValue } from "@/lib/typography";
 import { createClient } from "@/lib/supabase/server";
-import { TITLE_FONT_VARS, BODY_FONT_VARS, type SiteSettings } from "@/lib/types";
-
-// Both options for each role are preloaded here — the admin picks one in
-// /admin/parametres and getTypography() below aliases --font-display /
-// --font-body to it. `variable:` must be a string literal (next/font is a
-// build-time transform), so these have to stay in sync by hand with
-// TITLE_FONT_VARS / BODY_FONT_VARS in src/lib/types.ts.
-const fontDisplayPlayfair = Playfair_Display({
-  variable: "--font-display-playfair-display",
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "900"],
-});
-
-const fontDisplayGiveYouGlory = Give_You_Glory({
-  variable: "--font-display-give-you-glory",
-  subsets: ["latin"],
-  weight: "400",
-});
-
-const fontBodyInter = Inter({
-  variable: "--font-body-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
-
-const fontBodyQuicksand = Quicksand({
-  variable: "--font-body-quicksand",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
+import type { SiteSettings } from "@/lib/types";
 
 async function getIdentity() {
   const supabase = await createClient();
@@ -76,7 +47,7 @@ async function getPalette(): Promise<CSSProperties> {
   } as CSSProperties;
 }
 
-async function getTypography(): Promise<CSSProperties> {
+async function getTypography(): Promise<{ style: CSSProperties; fontsHref: string }> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("site_settings")
@@ -85,17 +56,20 @@ async function getTypography(): Promise<CSSProperties> {
     .maybeSingle();
   const settings = data as Pick<SiteSettings, "font_title" | "font_body"> | null;
 
-  const titleFont = settings?.font_title ?? TYPOGRAPHY.titleFont;
-  const bodyFont = settings?.font_body ?? TYPOGRAPHY.bodyFont;
+  const titleFont = sanitizeFontFamily(settings?.font_title, TYPOGRAPHY.titleFont);
+  const bodyFont = sanitizeFontFamily(settings?.font_body, TYPOGRAPHY.bodyFont);
 
-  // Same inline-style-on-<html> override as getPalette() above — aliases
-  // --font-display / --font-body (read everywhere via --font-serif /
-  // --font-sans in globals.css) to whichever preloaded variable the
-  // admin picked.
+  // Same inline-style-on-<html> override as getPalette() above — --font-
+  // display / --font-body (read everywhere via --font-serif / --font-sans
+  // in globals.css) go straight to the chosen family name now, loaded at
+  // runtime via the <link> below instead of a preloaded next/font import.
   return {
-    "--font-display": `var(${TITLE_FONT_VARS[titleFont]})`,
-    "--font-body": `var(${BODY_FONT_VARS[bodyFont]})`,
-  } as CSSProperties;
+    style: {
+      "--font-display": fontFamilyCssValue(titleFont, "serif"),
+      "--font-body": fontFamilyCssValue(bodyFont, "sans-serif"),
+    } as CSSProperties,
+    fontsHref: googleFontsHref([titleFont, bodyFont]),
+  };
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -107,7 +81,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [{ name }, paletteStyle, typographyStyle] = await Promise.all([
+  const [{ name }, paletteStyle, typography] = await Promise.all([
     getIdentity(),
     getPalette(),
     getTypography(),
@@ -116,9 +90,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="fr"
-      className={`${fontDisplayPlayfair.variable} ${fontDisplayGiveYouGlory.variable} ${fontBodyInter.variable} ${fontBodyQuicksand.variable} h-full antialiased`}
-      style={{ ...paletteStyle, ...typographyStyle }}
+      className="h-full antialiased"
+      style={{ ...paletteStyle, ...typography.style }}
     >
+      {/* Rendered outside a literal <head> on purpose: React 19 hoists
+          <link>/<meta>/<title> found anywhere in the tree into the real
+          document <head>, which is how next/font itself injects its own
+          preload tags — this just does the same for a runtime family. */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link rel="stylesheet" href={typography.fontsHref} precedence="default" />
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <SiteHeader name={name} />
         <main className="flex-1">{children}</main>
