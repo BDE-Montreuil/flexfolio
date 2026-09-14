@@ -9,6 +9,7 @@ import { sanitizeHex } from "@/lib/palette";
 import { sanitizeFontFamily, googleFontsHref, fontFamilyCssValue } from "@/lib/typography";
 import { createClient } from "@/lib/supabase/server";
 import type { SiteSettings } from "@/lib/types";
+import { Analytics } from "@vercel/analytics/next";
 
 async function getIdentity() {
   const supabase = await createClient();
@@ -110,6 +111,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </Link>
         </footer>
         <Toaster />
+        <Analytics />
       </body>
     </html>
   );
