@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Gallery } from "@/components/gallery";
 import { Badge } from "@/components/ui/badge";
+import { formatProjectDate } from "@/lib/project-helpers";
 import type { ProjectWithImages, SiteSettings } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +30,9 @@ export default async function ProjectPage({
   return (
     <article className="mx-auto max-w-5xl pb-20">
       <header className="flex flex-col gap-4 px-4 pb-8 pt-10 sm:px-8">
+        <span className="label-eyebrow text-brand-ink-muted">
+          {formatProjectDate(p.created_at)}
+        </span>
         <h1 className="font-serif text-4xl leading-tight text-brand-ink sm:text-5xl">
           {p.title}
         </h1>

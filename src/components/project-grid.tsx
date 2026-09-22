@@ -11,7 +11,7 @@ export function ProjectGrid({ projects }: { projects: ProjectWithImages[] }) {
   }
 
   return (
-    <div className="columns-1 gap-4 px-4 py-10 sm:columns-2 sm:gap-6 sm:px-8 lg:columns-3">
+    <div className="columns-1 gap-4 px-4 pb-10 pt-6 sm:columns-2 sm:gap-6 sm:px-8 sm:pt-8 lg:columns-3">
       {projects.map((project) => (
         <ProjectCard key={project.id} project={project} />
       ))}

@@ -32,11 +32,11 @@ export function HeroSection({ labelLeft, labelRight, wordmark, name, imageUrl }:
         </div>
       )}
 
-      <div className="flex flex-col items-start justify-between gap-2 px-2 pb-10 pt-10 sm:flex-row sm:items-end sm:px-4 sm:pb-12 sm:pt-12">
+      <div className="flex flex-col items-start justify-between gap-2 px-2 pb-6 pt-10 sm:flex-row sm:items-end sm:px-4 sm:pb-8 sm:pt-12">
         <h1 className="font-serif text-[clamp(3.25rem,15vw,9rem)] font-black leading-[0.85] tracking-tight text-brand-ink">
           {wordmark}
         </h1>
-        <div className="pr-2 pb-1 text-right font-sans text-2xl leading-tight text-brand-ink sm:pr-6 sm:text-3xl">
+        <div className="pr-2 pb-1 text-right font-sans text-lg leading-tight text-brand-ink sm:pr-6 sm:text-xl">
           <p>{firstName}</p>
           {lastName && <p>{lastName}</p>}
         </div>
