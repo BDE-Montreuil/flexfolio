@@ -27,7 +27,7 @@ export function ProjectCard({ project }: { project: ProjectWithImages }) {
             <span className="label-eyebrow text-brand-ink-muted">Sans image</span>
           </div>
         )}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100 [@media(hover:none)]:opacity-100">
           <span className="block text-xs uppercase tracking-[0.1em] text-white">
             {project.title}
           </span>

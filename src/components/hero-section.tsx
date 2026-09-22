@@ -19,8 +19,8 @@ export function HeroSection({ labelLeft, labelRight, wordmark, name, imageUrl }:
         <span className="label-eyebrow">{labelRight}</span>
       </div>
 
-      <div className="relative mt-4 h-[60vh] w-full overflow-hidden rounded-[4px] sm:h-[68vh]">
-        {imageUrl ? (
+      {imageUrl && (
+        <div className="relative mt-4 h-[60vh] w-full overflow-hidden rounded-[4px] sm:h-[68vh]">
           <Image
             src={imageUrl}
             alt=""
@@ -29,14 +29,10 @@ export function HeroSection({ labelLeft, labelRight, wordmark, name, imageUrl }:
             sizes="100vw"
             className="object-cover"
           />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-secondary">
-            <span className="label-eyebrow text-brand-ink-muted">Photo à venir</span>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className="flex flex-col items-start justify-between gap-2 px-2 pb-10 pt-4 sm:flex-row sm:items-end sm:px-4">
+      <div className="flex flex-col items-start justify-between gap-2 px-2 pb-10 pt-10 sm:flex-row sm:items-end sm:px-4 sm:pb-12 sm:pt-12">
         <h1 className="font-serif text-[clamp(3.25rem,15vw,9rem)] font-black leading-[0.85] tracking-tight text-brand-ink">
           {wordmark}
         </h1>
