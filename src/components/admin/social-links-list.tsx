@@ -3,12 +3,14 @@
 import { PlusIcon, Trash2Icon, ChevronUpIcon, ChevronDownIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { SocialIcon } from "@/components/social-icon";
 import type { SocialLink } from "@/lib/types";
 
-/** Add/remove/reorder editor for the social links shown on the CV card.
- *  Free-form {label, url} pairs rather than a fixed set of platforms, so
- *  any network (or anything else worth linking) fits without a schema
- *  change. */
+/** Add/remove/reorder editor for the social links shown as icons in the
+ *  contact block of the About card. Free-form {label, url} pairs rather
+ *  than a fixed set of platforms: Instagram, LinkedIn, TikTok and
+ *  Pinterest get their own icon (detected from the URL, see
+ *  social-icon.tsx), anything else falls back to a globe. */
 export function SocialLinksList({
   links,
   onChange,
@@ -43,6 +45,11 @@ export function SocialLinksList({
           key={index}
           className="flex flex-col gap-2 border border-border p-3 sm:flex-row sm:items-start"
         >
+          <SocialIcon
+            url={link.url}
+            label={link.label}
+            className="hidden h-5 w-5 shrink-0 self-center text-brand-ink-muted sm:block"
+          />
           <div className="grid flex-1 gap-2 sm:grid-cols-2">
             <Input
               placeholder="Plateforme (ex. Instagram)"
