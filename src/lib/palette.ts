@@ -4,7 +4,7 @@ export function isValidHex(value: string): boolean {
   return HEX_PATTERN.test(value);
 }
 
-/** DB values are already constrained by a CHECK (see migration 0003), but
+/** DB values are already constrained by a CHECK (see supabase/schema.sql), but
  *  this guards the inline `style` override in layout.tsx against a missing
  *  row or a pre-migration database — never trust a color straight into
  *  a style attribute without checking its shape first. */

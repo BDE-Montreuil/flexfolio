@@ -1,4 +1,5 @@
 import { DownloadIcon, MailIcon, PhoneIcon } from "lucide-react";
+import { SocialIcon } from "@/components/social-icon";
 import type { SocialLink } from "@/lib/types";
 
 export function CVCard({
@@ -16,6 +17,8 @@ export function CVCard({
   socialLinks: SocialLink[];
   cvPdfUrl: string | null;
 }) {
+  const links = socialLinks.filter((link) => link.url.trim());
+
   return (
     <div className="flex flex-col gap-6 bg-brand-card p-6 text-brand-card-foreground sm:p-8">
       <div>
@@ -25,7 +28,7 @@ export function CVCard({
         </p>
       </div>
 
-      {(contactEmail || contactPhone) && (
+      {(contactEmail || contactPhone || links.length > 0) && (
         <div className="flex flex-col gap-2 text-[12px] leading-[1.5]">
           {contactEmail && (
             <a
@@ -45,32 +48,28 @@ export function CVCard({
               {contactPhone}
             </a>
           )}
+          {links.length > 0 && (
+            <ul className="mt-1 flex flex-wrap items-center gap-3">
+              {links.map((link, index) => (
+                <li key={`${link.label}-${index}`}>
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-label={link.label || link.url}
+                    title={link.label || undefined}
+                    className="block text-brand-card-foreground/80 transition-colors hover:text-brand-card-foreground"
+                  >
+                    <SocialIcon url={link.url} label={link.label} className="h-[18px] w-[18px]" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
-      {socialLinks.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <h3 className="text-[11px] font-semibold uppercase tracking-[0.1em] text-brand-card-foreground/70">
-            Réseaux
-          </h3>
-          <ul className="flex flex-col gap-1.5 text-[12px] leading-[1.5]">
-            {socialLinks.map((link, index) => (
-              <li key={`${link.label}-${index}`}>
-                <a
-                  href={link.url}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="text-brand-card-foreground/90 hover:text-brand-card-foreground"
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {cvPdfUrl ? (
+      {cvPdfUrl && (
         <a
           href={cvPdfUrl}
           target="_blank"
@@ -80,8 +79,6 @@ export function CVCard({
           <DownloadIcon className="h-3.5 w-3.5" />
           Télécharger le CV
         </a>
-      ) : (
-        <p className="text-[12px] text-brand-card-foreground/60">CV à venir.</p>
       )}
     </div>
   );

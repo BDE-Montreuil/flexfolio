@@ -19,6 +19,7 @@ export function ProjectCard({ project }: { project: ProjectWithImages }) {
             alt={project.title}
             width={800}
             height={featured.image_orientation === "portrait" ? 1000 : 550}
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             style={{ objectPosition: positionToObjectPosition(featured.image_position) }}
             className="w-full object-cover transition-transform duration-[400ms] ease-out group-hover:scale-[1.02]"
           />
