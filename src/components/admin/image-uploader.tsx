@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { UploadCloudIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { IMMUTABLE_CACHE_CONTROL, prepareImageForUpload } from "@/lib/compress-image";
+import { safeFileName } from "@/lib/storage-path";
 import type { EditableImage } from "@/lib/types";
 
 const BUCKET = "project-images";
@@ -27,9 +29,11 @@ export function ImageUploader({
     for (const file of Array.from(files)) {
       if (!file.type.startsWith("image/")) continue;
 
-      const path = `projects/${projectId}/${crypto.randomUUID()}-${file.name}`;
-      const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
-        cacheControl: "3600",
+      const { file: prepared, orientation } = await prepareImageForUpload(file);
+      const path = `projects/${projectId}/${crypto.randomUUID()}-${safeFileName(prepared.name)}`;
+      const { error } = await supabase.storage.from(BUCKET).upload(path, prepared, {
+        cacheControl: IMMUTABLE_CACHE_CONTROL,
+        contentType: prepared.type,
       });
 
       if (error) {
@@ -45,10 +49,10 @@ export function ImageUploader({
         key: crypto.randomUUID(),
         storagePath: path,
         publicUrl,
-        fileName: file.name,
+        fileName: prepared.name,
         caption: "",
         isFeatured: false,
-        orientation: "landscape",
+        orientation: orientation ?? "landscape",
         position: "center",
       });
     }

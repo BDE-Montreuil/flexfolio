@@ -67,7 +67,7 @@ export function ImageCard({
           src={image.publicUrl}
           alt=""
           fill
-          sizes="(min-width: 640px) 33vw, 50vw"
+          unoptimized
           style={{ objectPosition: positionToObjectPosition(image.position) }}
           className="object-cover"
         />

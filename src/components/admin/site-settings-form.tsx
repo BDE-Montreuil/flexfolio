@@ -16,7 +16,8 @@ import { SocialLinksList } from "@/components/admin/social-links-list";
 import { ColorField } from "@/components/admin/color-field";
 import { FontNameField } from "@/components/admin/font-name-field";
 import { SITE, ABOUT_CONTENT, CONTACT, PALETTE, TYPOGRAPHY } from "@/lib/site-config";
-import { extractStoragePath, fileNameFromStoragePath } from "@/lib/storage-path";
+import { extractStoragePath, fileNameFromStoragePath, safeFileName } from "@/lib/storage-path";
+import { IMMUTABLE_CACHE_CONTROL, prepareImageForUpload } from "@/lib/compress-image";
 import {
   type GalleryLayout,
   type SiteSettings,
@@ -24,6 +25,19 @@ import {
 } from "@/lib/types";
 
 const BUCKET = "project-images";
+
+/** Deletes the file a settings field pointed at before being replaced —
+ *  otherwise every "Remplacer" leaves the previous upload in the bucket
+ *  forever. Only touches URLs that actually live in our bucket. */
+async function removeReplacedFile(
+  supabase: ReturnType<typeof createClient>,
+  previousUrl: string | null,
+) {
+  if (!previousUrl) return;
+  const path = extractStoragePath(previousUrl, BUCKET);
+  if (path === previousUrl) return;
+  await supabase.storage.from(BUCKET).remove([path]);
+}
 
 function PhotoField({
   label,
@@ -41,9 +55,11 @@ function PhotoField({
   async function handleFile(file: File) {
     setUploading(true);
     const supabase = createClient();
-    const path = `site/${field}-${crypto.randomUUID()}-${file.name}`;
-    const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, {
-      cacheControl: "3600",
+    const { file: prepared } = await prepareImageForUpload(file);
+    const path = `site/${field}-${crypto.randomUUID()}-${safeFileName(prepared.name)}`;
+    const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, prepared, {
+      cacheControl: IMMUTABLE_CACHE_CONTROL,
+      contentType: prepared.type,
     });
 
     if (uploadError) {
@@ -60,10 +76,14 @@ function PhotoField({
     setUploading(false);
 
     if (error) {
+      // Settings still point at the old photo — drop the new upload
+      // rather than leaving it orphaned in the bucket.
+      await supabase.storage.from(BUCKET).remove([path]);
       toast.error(error);
       return;
     }
 
+    await removeReplacedFile(supabase, url);
     setUrl(publicUrl);
     toast.success(`${label} mise à jour.`);
   }
@@ -73,7 +93,7 @@ function PhotoField({
       <Label>{label}</Label>
       <div className="relative h-40 w-full max-w-xs overflow-hidden bg-secondary">
         {url ? (
-          <Image src={url} alt={label} fill sizes="320px" className="object-cover" />
+          <Image src={url} alt={label} fill unoptimized className="object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center text-xs text-brand-ink-muted">
             Aucune photo
@@ -120,9 +140,9 @@ function CvPdfField({ currentUrl }: { currentUrl: string | null }) {
     const supabase = createClient();
     // uuid immediately before the filename, as the last path segment —
     // matches the convention fileNameFromStoragePath expects (see below).
-    const path = `site/cv-pdf/${crypto.randomUUID()}-${file.name}`;
+    const path = `site/cv-pdf/${crypto.randomUUID()}-${safeFileName(file.name)}`;
     const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, {
-      cacheControl: "3600",
+      cacheControl: IMMUTABLE_CACHE_CONTROL,
     });
 
     if (uploadError) {
@@ -139,10 +159,12 @@ function CvPdfField({ currentUrl }: { currentUrl: string | null }) {
     setUploading(false);
 
     if (error) {
+      await supabase.storage.from(BUCKET).remove([path]);
       toast.error(error);
       return;
     }
 
+    await removeReplacedFile(supabase, url);
     setUrl(publicUrl);
     toast.success("CV mis à jour.");
   }
@@ -408,6 +430,11 @@ export function SiteSettingsForm({ settings }: { settings: SiteSettings | null }
           </div>
           <div className="flex flex-col gap-2">
             <Label>Réseaux sociaux</Label>
+            <p className="text-xs text-brand-ink-muted">
+              Affichés en icônes sous l&apos;e-mail et le téléphone. Instagram, LinkedIn, TikTok et
+              Pinterest sont reconnus automatiquement depuis le lien ; les autres ont une icône
+              générique.
+            </p>
             <SocialLinksList links={socialLinks} onChange={setSocialLinks} />
           </div>
         </section>
