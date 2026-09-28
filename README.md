@@ -30,18 +30,18 @@ Remplis `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ### 3. Schéma de base de données
 
-Dans le SQL Editor de Supabase, exécute dans l'ordre le contenu de
-`supabase/migrations/0001_init.sql`, `0002_editable_content_and_layout.sql`,
-`0003_contact_pdf_and_palette.sql` puis `0004_typography.sql`. Ça crée :
+Dans le SQL Editor de Supabase, exécute le contenu de
+`supabase/schema.sql`. Le script est idempotent : il fonctionne sur un
+projet vierge comme sur une base déjà créée avec les anciennes migrations
+(il ajoute ce qui manque sans rien supprimer). Ça crée :
 
 - `projects`, `project_images`, `site_settings`
 - la contrainte "une seule image featured par projet"
-- le bucket de storage public `project-images` + ses policies RLS
-- (0002) les colonnes `site_settings` pour l'identité, le contenu About
-  et la disposition de galerie — voir « Contenu à personnaliser » plus bas
-- (0003) le CV en PDF, les infos de contact, les réseaux sociaux et la
-  palette de couleurs
-- (0004) le choix de police (titres / corps de texte)
+- les colonnes `site_settings` pour l'identité, le contenu About, la
+  disposition de galerie, le CV en PDF, le contact, les réseaux sociaux,
+  la palette et la typographie — voir « Contenu à personnaliser » plus bas
+- le bucket de storage public `project-images` (20 Mo max par fichier,
+  images + PDF) + ses policies RLS
 
 ### 4. Compte admin
 
@@ -76,6 +76,40 @@ Vercel — les causes les plus fréquentes sont les deux variables
 d'environnement manquantes (ci-dessus) ou une erreur de build spécifique
 qu'il vaut mieux lire telle quelle que deviner.
 
+### 7. Nettoyage du storage
+
+`npm run cleanup:storage` liste les fichiers du bucket `project-images`
+qu'aucune ligne de la base ne référence plus (photos hero/profil et CV
+remplacés, images d'un projet jamais enregistré, etc.) et la place qu'ils
+occupent. Par défaut c'est une simulation ; pour supprimer vraiment :
+
+```bash
+npm run cleanup:storage -- --apply
+```
+
+Les fichiers de moins de 24 h sont conservés (upload en cours dans un
+formulaire pas encore enregistré) — réglable avec `--min-age-hours=N`.
+Le script a besoin de `SUPABASE_SERVICE_ROLE_KEY` (Project Settings → API)
+dans `.env.local`, jamais dans `.env` : cette clé contourne la RLS.
+
+### 8. Recompression des images existantes
+
+Les nouveaux uploads sont compressés dans le navigateur (WebP, 2560 px
+max). Pour appliquer la même chose aux images uploadées avant :
+
+```bash
+npm run recompress:storage             # simulation : affiche le gain estimé
+npm run recompress:storage -- --apply  # remplace vraiment
+```
+
+Chaque image est réencodée sous un nouveau nom, la base est mise à jour,
+puis l'ancien fichier est supprimé (tout est annulé pour l'image si la
+mise à jour échoue). Les images qui gagneraient moins de 10 % sont
+laissées telles quelles (`--min-saving=N` pour changer le seuil), les
+GIF/WebP animés, SVG et PDF ne sont pas touchés. Même clé
+`SUPABASE_SERVICE_ROLE_KEY` que le nettoyage ; lance le nettoyage
+d'abord, seules les images référencées en base sont recompressées.
+
 ## Contenu à personnaliser
 
 Tout se fait depuis `/admin/parametres`, en base (table `site_settings`) :
@@ -98,7 +132,7 @@ Tout se fait depuis `/admin/parametres`, en base (table `site_settings`) :
   techniques »)
 
 `src/lib/site-config.ts` ne reste que comme valeurs de repli si jamais la
-base n'est pas encore migrée (0002) ou une lecture échoue ; l'éditer ne
+base n'est pas encore initialisée (`supabase/schema.sql`) ou une lecture échoue ; l'éditer ne
 change plus rien une fois que `site_settings` est renseigné. Les liens de
 nav (`NAV_LINKS`, dans le même fichier) restent en dur — pas demandés
 comme éditables.
