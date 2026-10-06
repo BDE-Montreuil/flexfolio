@@ -1,7 +1,7 @@
 import type { SocialLink } from "@/lib/types";
 
 /**
- * Fallback copy only. Since the site_settings columns (supabase/schema.sql), every field below also lives
+ * Fallback copy only. Since the site_settings columns (supabase/init.sql), every field below also lives
  * in the `site_settings` row and is editable from /admin/parametres — the
  * admin form is the source of truth. These constants exist purely as a
  * defensive default (e.g. `settings?.site_name ?? SITE.name`) for the
@@ -50,7 +50,7 @@ export const PALETTE = {
 };
 
 /** Same defensive-fallback role as PALETTE above — mirrors the
- *  supabase/schema.sql column defaults, not the live source of truth once a
+ *  supabase/init.sql column defaults, not the live source of truth once a
  *  settings row exists. */
 export const TYPOGRAPHY = {
   titleFont: "Give You Glory",
