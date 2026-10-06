@@ -28,7 +28,7 @@
   - `supabase/`: Client and server-side Supabase configuration.
   - `types.ts`: Centralized TypeScript interfaces for the data model.
   - `site-config.ts`: Fallback configuration for site settings.
-- `supabase/migrations`: SQL files defining the database schema.
+- `supabase/init.sql`: idempotent SQL for Flexfolio's tables, RLS and storage bucket, applied after flexstaff's `supabase/init.sql` (suite rights).
 
 ### 🗄 Data Model
 - **`Project`**: Core project details (title, slug, description, tech stack, visibility).

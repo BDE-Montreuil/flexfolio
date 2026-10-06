@@ -30,10 +30,13 @@ Remplis `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ### 3. Schéma de base de données
 
-Dans le SQL Editor de Supabase, exécute le contenu de
-`supabase/schema.sql`. Le script est idempotent : il fonctionne sur un
-projet vierge comme sur une base déjà créée avec les anciennes migrations
-(il ajoute ce qui manque sans rien supprimer). Ça crée :
+Le projet Supabase est partagé par les applis de Flex Suite. Dans le SQL
+Editor de Supabase, exécute d'abord `supabase/init.sql` du dépôt
+**flexstaff** (droits communs de la suite), puis `supabase/init.sql` de ce
+dépôt. Les deux sont idempotents : ils fonctionnent sur un projet vierge
+comme sur une base existante (ils ajoutent ce qui manque sans rien
+supprimer) ; relance celui de ce dépôt après chaque modification du
+schéma. Ça crée :
 
 - `projects`, `project_images`, `site_settings`
 - la contrainte "une seule image featured par projet"
@@ -47,7 +50,11 @@ projet vierge comme sur une base déjà créée avec les anciennes migrations
 
 Il n'y a volontairement pas de page d'inscription publique. Crée le compte
 admin depuis Authentication → Users → Add user dans le dashboard Supabase
-(email + mot de passe).
+(email + mot de passe), puis donne-lui le droit d'administrer Flexfolio :
+super admin de la suite (en SQL, voir le README de flexstaff) ou rôle
+`admin` de l'appli `flexfolio` (`npm run role -- email flexfolio admin`
+dans flexstaff). Sans ce droit, la base refuse toute modification du
+portfolio (RLS).
 
 ### 5. Lancer en local
 
@@ -132,7 +139,7 @@ Tout se fait depuis `/admin/parametres`, en base (table `site_settings`) :
   techniques »)
 
 `src/lib/site-config.ts` ne reste que comme valeurs de repli si jamais la
-base n'est pas encore initialisée (`supabase/schema.sql`) ou une lecture échoue ; l'éditer ne
+base n'est pas encore initialisée (`supabase/init.sql`) ou une lecture échoue ; l'éditer ne
 change plus rien une fois que `site_settings` est renseigné. Les liens de
 nav (`NAV_LINKS`, dans le même fichier) restent en dur — pas demandés
 comme éditables.
